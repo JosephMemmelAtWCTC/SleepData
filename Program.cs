@@ -1,4 +1,11 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿string dataPath = "data.txt";
+const int numPlacesInColumnAfterDividerDays = 2;
+const int numPlacesInColumnAfterDividerCaculated = 3;//Max is 3 with Average as "avg" in the code to match up with the example
+char underLinePattern = '-';
+
+string DELIMETER_1 = ",";
+string DELIMETER_2 = "|";
+
 // ask for input
 Console.WriteLine("Enter 1 to create data file.");
 Console.WriteLine("Enter 2 to parse data.");
@@ -23,7 +30,7 @@ if (resp == "1")
     // random number generator
     Random rnd = new Random();
     // create file
-    StreamWriter sw = new StreamWriter("data.txt");
+    StreamWriter sw = new StreamWriter(dataPath);
 
     // loop for the desired # of weeks
     while (dataDate < dataEndDate)
@@ -45,6 +52,70 @@ if (resp == "1")
 }
 else if (resp == "2")
 {
-    // TODO: parse data file
+    if (System.IO.File.Exists(dataPath))
+    {
+        StreamReader sr = new StreamReader(dataPath);
+
+        // Caculate just once
+        string weekHeader = $" {DayOfWeek.Sunday.ToString().Substring(0,numPlacesInColumnAfterDividerDays),numPlacesInColumnAfterDividerDays} {DayOfWeek.Monday.ToString().Substring(0,numPlacesInColumnAfterDividerDays),numPlacesInColumnAfterDividerDays} {DayOfWeek.Tuesday.ToString().Substring(0,numPlacesInColumnAfterDividerDays),numPlacesInColumnAfterDividerDays} {DayOfWeek.Wednesday.ToString().Substring(0,numPlacesInColumnAfterDividerDays),numPlacesInColumnAfterDividerDays} {DayOfWeek.Thursday.ToString().Substring(0,numPlacesInColumnAfterDividerDays),numPlacesInColumnAfterDividerDays} {DayOfWeek.Friday.ToString().Substring(0,numPlacesInColumnAfterDividerDays),numPlacesInColumnAfterDividerDays} {DayOfWeek.Saturday.ToString().Substring(0,numPlacesInColumnAfterDividerDays),numPlacesInColumnAfterDividerDays}";
+        string calcHeader = $" {"Total".Substring(0,numPlacesInColumnAfterDividerCaculated),numPlacesInColumnAfterDividerCaculated} {"Avg".Substring(0,numPlacesInColumnAfterDividerCaculated),numPlacesInColumnAfterDividerCaculated}";
+        string underLineHeader = "";
+        for (int i = 0; i < 7; i++)
+        {
+            underLineHeader += " ";
+            for (int j = 0; j < numPlacesInColumnAfterDividerDays; j++)
+            {
+                underLineHeader += underLinePattern;
+            }
+        }
+        for (int i = 0; i < 2; i++)
+        {
+            underLineHeader += " ";
+            for (int j = 0; j < numPlacesInColumnAfterDividerCaculated; j++)
+            {
+                underLineHeader += underLinePattern;
+            }
+        }
+        string fullHeader = $"{weekHeader}{calcHeader}\n{underLineHeader}";
+
+        while (!sr.EndOfStream)
+        {
+            string line = sr.ReadLine();
+            DateTime date = DateTime.Parse(line.Substring(0, line.IndexOf(DELIMETER_1)));
+            Console.WriteLine($"Week of {date:MMM}, {date:dd}, {date:yyyy}");
+
+
+            string[] nightHours = line.Substring(line.IndexOf(DELIMETER_1) + 1).Split(DELIMETER_2);
+            Console.WriteLine(fullHeader);
+
+            //Days
+            foreach (string nightHour in nightHours)
+            {
+                Console.Write($" {nightHour,numPlacesInColumnAfterDividerDays}");
+            }
+            //Caculated
+            // float[] nightHoursNums = new float[nightHours.Length];
+            float totalWeekNightHours = 0f;
+            for (int i = 0; i < nightHours.Length; i++)
+            {
+                totalWeekNightHours += float.Parse(nightHours[i]);
+            }
+
+            string average = $"{(totalWeekNightHours / nightHours.Length).ToString():F10}";//TODO:Make to numPlacesInColumnAfterDividerCaculated
+            Console.Write($" {totalWeekNightHours.ToString(),numPlacesInColumnAfterDividerCaculated}");
+
+            if(average.Length > numPlacesInColumnAfterDividerCaculated){
+                average = average.Substring(0,numPlacesInColumnAfterDividerCaculated);
+            }
+
+            Console.Write($" {average,numPlacesInColumnAfterDividerCaculated}");
+            Console.WriteLine("\n");
+        }
+        sr.Close();
+    }
+    else
+    {
+        Console.WriteLine($"The file, '{dataPath}' was not found.");
+    }
 
 }
